@@ -1,4 +1,4 @@
- #!/bin/bash
+#!/bin/bash
 
 # RESOURCE_GROUP: The name of our resource group
 # ACR_NAME: The name of our Azure Container Registry
@@ -6,10 +6,10 @@
 # AKS_CLUSTER: name of our Azure Kubernetes Service
 # REGION: location for our azure services and resources
 RESOURCE_GROUP=prodstoreRG
-ACR_NAME=prodstoreCR
+ACR_NAME=prodstoreACR
 AKS_CLUSTER=prodstoreAKS
 SERVICE_PRINCIPAL_NAME=prodstoreSP
-REGION=Korea Central
+REGION=koreacentral
 
 
 # Create a resource group.
@@ -27,9 +27,10 @@ az acr create -n $ACR_NAME -g $RESOURCE_GROUP -l $REGION --sku basic
 echo $'\n'
 
 # Obtain the full registry ID for subsequent command args
-ACR_REGISTRY_ID=$(az acr show --name $ACR_NAME --query id --output tsv)
+ACR_REGISTRY_ID=$(az acr show -n $ACR_NAME -g $RESOURCE_GROUP --query id --output tsv)
 
 echo "Container registry ID: $ACR_REGISTRY_ID /n"
+
 
 # Create the service principal with rights scoped to the registry.
 # Modify the '--role'
@@ -38,10 +39,14 @@ echo "Container registry ID: $ACR_REGISTRY_ID /n"
 	# acrpush:     push and pull
 	# owner:       push, pull, and assign roles
 
-SP_ID=$(az aks show --resource-group $RESOURCE_GROUP --name $AKS_CLUSTER \
---query servicePrincipalProfile.clientId -o tsv)
 
-SP_SECRET=$(az ad sp create-for-rbac --name http://$SERVICE_PRINCIPAL_NAME --scopes $ACR_REGISTRY_ID --role acrpull --query password --output tsv)
+SP_PASSWD=$(az ad sp create-for-rbac --name http://$SERVICE_PRINCIPAL_NAME --scopes $ACR_REGISTRY_ID --role acrpull --query password --output tsv)
+SP_APP_ID=$(az ad sp show --id http://$SERVICE_PRINCIPAL_NAME --query appId --output tsv)
+
+# Output the service principal's credentials; use these in your services and
+# applications to authenticate to the container registry.
+#echo "Service principal ID: $SP_APP_ID"
+#echo "Service principal password: $SP_PASSWD"
 
 echo $'\n'
 
@@ -49,8 +54,20 @@ echo $'\n'
 echo "Creating AKS cluster named $AKS_CLUSTER with 1 node. This may take a while..."
 az aks create -n $AKS_CLUSTER -g $RESOURCE_GROUP -l $REGION \
           -c 1 \
-          --vm-set-type AvailabilitySet  \
           --generate-ssh-keys \
-          --service-principal $SP_ID \
-          --client-secret $SP_SECRET \
+          --service-principal $SP_APP_ID \
+          --client-secret $SP_PASSWD \
           --attach-acr $ACR_NAME
+
+
+echo $'\n'
+
+#Downloads creadentials and configures 
+echo "Downloading creadentials and configures..."
+az aks get-credentials -g $RESOURCE_GROUP -n $AKS_CLUSTER
+
+echo $'\n'
+
+#Verify the connection to AKS created.
+echo "Verifying the connection to AKS..."
+kubectl get nodes
