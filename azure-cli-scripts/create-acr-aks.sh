@@ -9,7 +9,7 @@ RESOURCE_GROUP=prodstoreRG
 ACR_NAME=prodstoreCR
 AKS_CLUSTER=prodstoreAKS
 SERVICE_PRINCIPAL_NAME=prodstoreSP
-REGION=EASTUS
+REGION=Korea Central
 
 
 # Create a resource group.
@@ -38,14 +38,10 @@ echo "Container registry ID: $ACR_REGISTRY_ID /n"
 	# acrpush:     push and pull
 	# owner:       push, pull, and assign roles
 
-SP_PASSWD=$(az ad sp create-for-rbac --name http://$SERVICE_PRINCIPAL_NAME --scopes $ACR_REGISTRY_ID --role acrpull --query password --output tsv)
-SP_APP_ID=$(az ad sp show --id http://$SERVICE_PRINCIPAL_NAME --query appId --output tsv)
+SP_ID=$(az aks show --resource-group $RESOURCE_GROUP --name $AKS_CLUSTER \
+--query servicePrincipalProfile.clientId -o tsv)
 
-echo $'\n'
-
-# Output the service principal's credentials; use these in AKS authenticate against container registy
-echo "Service principal ID: $SP_APP_ID"
-echo $"Service principal password: $SP_PASSWD"
+SP_SECRET=$(az ad sp create-for-rbac --name http://$SERVICE_PRINCIPAL_NAME --scopes $ACR_REGISTRY_ID --role acrpull --query password --output tsv)
 
 echo $'\n'
 
@@ -55,5 +51,6 @@ az aks create -n $AKS_CLUSTER -g $RESOURCE_GROUP -l $REGION \
           -c 1 \
           --vm-set-type AvailabilitySet  \
           --generate-ssh-keys \
-          --service-principal $SP_APP_ID \
-          --client-secret $SP_PASSWD
+          --service-principal $SP_ID \
+          --client-secret $SP_SECRET \
+          --attach-acr $ACR_NAME
