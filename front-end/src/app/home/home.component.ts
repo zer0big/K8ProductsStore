@@ -10,7 +10,7 @@ import { Product } from '../product';
   styleUrls: ['./home.component.css']
 })
 export class HomeComponent implements OnInit {
-  title = 'Deploying a multi-container application to Azure Kubernetes';
+  title = 'Deploying a multi-container application to AKSS';
   public async: any;
   Products: Observable<Product[]>;
 
