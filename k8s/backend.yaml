@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: backend-api
-        image: prodstorecr.azurecr.io/backend:latest
+        image: zeroacrdemo.azurecr.io/backend:latest
         ports:
         - containerPort: 80      
         env:

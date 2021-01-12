@@ -1,0 +1,29 @@
+# Default values for products-store.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+replicaCount: 1
+imagePullPolicy: Always
+
+svc:
+  port: 80
+
+backend:
+  name: backend
+  tag: latest
+  image:
+    repository: zeroacrdemo.azurecr.io/backend
+  service:
+    type: LoadBalancer
+
+frontend:
+  name: ui
+  tag: latest
+  image:
+    repository: zeroacrdemo.azurecr.io/ui
+  service:
+    type: LoadBalancer
+
+config:
+  db:
+    name: productsstore
+    connectionStr: bW9uZ29kYjovL3plcm9iaWctY29zbW9zLWRlbW86cUVHQmhUaHdvTXhacGYybzJqdGRRSktRZzR2VmlWdk15empsQzFIRGd5UkZJTXo2bEJmSVhqRzZsNERMQkpTSjdQYVpxcXgyMHlDekVPZk1tSGlmeEE9PUB6ZXJvYmlnLWNvc21vcy1kZW1vLm1vbmdvLmNvc21vcy5henVyZS5jb206MTAyNTUvP3NzbD10cnVlJnJlcGxpY2FTZXQ9Z2xvYmFsZGImcmV0cnl3cml0ZXM9ZmFsc2UmbWF4SWRsZVRpbWVNUz0xMjAwMDAmYXBwTmFtZT1AemVyb2JpZy1jb3Ntb3MtZGVtb0A=

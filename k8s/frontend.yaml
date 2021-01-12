@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: ui
-        image: prodstorecr.azurecr.io/ui:latest
+        image: zeroacrdemo.azurecr.io/ui:latest
         ports:
         - containerPort: 80
 ---    
